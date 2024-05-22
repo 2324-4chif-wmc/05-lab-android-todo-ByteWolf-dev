@@ -1,4 +1,4 @@
-package at.htl.todo.util.config;
+package at.htl.todo.util;
 
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.spi.ConfigSource;
@@ -20,16 +20,13 @@ import dagger.hilt.components.SingletonComponent;
 import io.smallrye.config.PropertiesConfigSource;
 import io.smallrye.config.SmallRyeConfigBuilder;
 
-/* Provide <a href="https://microprofile.io/project/eclipse/microprofile-config">ecplipse microprofile config</a> settings
-    (see src/main/resources/application.properties)
- */
 @Module
 @InstallIn(SingletonComponent.class)
 public class ConfigModule {
     @Provides
     @Singleton
     public Config provideConfiguration() {
-        //return new SmallRyeConfigBuilder().forClassLoader(classLoader).build(); <=== does not work on android yet.
+        //return new SmallRyeConfigBuilder().forClassLoader(classLoader).build(); <=== does not work
 
         var config = new SmallRyeConfigBuilder()
                 .forClassLoader(getClass().getClassLoader())
@@ -60,3 +57,4 @@ class FixMissingJavaNioJarFileProviderConfigSourceProvider implements ConfigSour
         return configSources;
     }
 }
+

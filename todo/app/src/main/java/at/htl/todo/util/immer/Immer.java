@@ -1,43 +1,36 @@
 package at.htl.todo.util.immer;
 
-import android.os.Handler;
-import android.os.Looper;
-
-import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
+
+import javax.inject.Inject;
+import javax.inject.Singleton;
 
 import at.htl.todo.util.mapper.Mapper;
 
+
 /** Immer simplifies handling immutable data structures.
- * @author Christian Aberger (http://www.aberger.at)
  * @see <a>https://immerjs.github.io/immer/</a>
  * @see <a>https://redux.js.org/understanding/thinking-in-redux/motivation</a>
  *
  * @param <T> The type of the baseState
  */
-
+@Singleton
 public class Immer<T> {
-    final Mapper<T> mapper;
-    final Handler handler;
+    public final Mapper<T> mapper;
 
+    @Inject
     public Immer(Class<? extends T> type) {
         mapper = new Mapper<T>(type);
-        handler = new Handler(Looper.getMainLooper());
     }
-    /** Create a deep clone of the existing model, apply a recipe to it and finally pass the new state to the consumer.
-     * To reduce the load on the main thread we clone the current state in a separate thread.
-     * To avoid multithreading issues we call back the recipe and resultConsumer running on the one and only Main thread of the app.
-     * @param currentState the previous readonly single source or truth
-     * @param recipe the callback function that modifies parts of the cloned state
-     * @param resultConsumer the callback function that uses the cloned & modified model
+
+    /**
+     * @param readonlyState the readonly readonlyState
+     * @param recipe the callback function that modifies the cloned state
+     * @return
      */
-    public void produce(final T currentState, Consumer<T> recipe, Consumer<T> resultConsumer) {
-        Consumer<T> runOnMainThread = t -> handler.post(() -> {
-            recipe.accept(t);
-            resultConsumer.accept(t);
-        });
-        CompletableFuture
-                .supplyAsync(() -> mapper.clone(currentState))
-                .thenAccept(runOnMainThread);
+    public T produce(final T readonlyState, Consumer<T> recipe) {
+        var nextState = mapper.clone(readonlyState);
+        recipe.accept(nextState);
+        return nextState;
     }
 }
